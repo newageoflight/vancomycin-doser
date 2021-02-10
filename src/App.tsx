@@ -57,7 +57,8 @@ function App() {
         <div className={`result-container ${result ? "filled" : ""}`}>
           {result ? (
             <>
-              <p><strong>Loading dose:</strong> {result.ld} mg</p>
+              <p>Doses rounded to nearest 250mg.</p>
+              <p><strong>Loading dose:</strong> {result.ld} mg (administer over {adminNote(result.ld)} minutes)</p>
               <p><strong>Maintenance dose</strong>: {result.md_min === result.md_max ? (
                 <>
                   {result.md_max} mg
@@ -66,7 +67,8 @@ function App() {
                 <>
                   {result.md_min}-{result.md_max} mg
                 </>
-              )} q{result.md_freq}h</p>
+              )} q{result.md_freq}h (administer over {adminNote(result.md_max)} minutes)</p>
+              <p>For other details please RTFM.</p>
             </>
           ) : ""}
         </div>
@@ -99,7 +101,17 @@ function vancDose(age: number, wt: number, cr: number, sex: "male" | "female") {
     ld = 15*wt;
   }
 
-  return {ld, md_min, md_max, md_freq}
+  return {
+    ld: Math.round(ld / 250) * 250,
+    md_min: Math.round(md_min / 250) * 250,
+    md_max: Math.round(md_max/250) * 250,
+    md_freq
+  }
+}
+
+function adminNote(dose: number): number {
+  let at10 = dose/10;
+  return Math.max(60, 120, at10)
 }
 
 export default App;
