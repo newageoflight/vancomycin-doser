@@ -10,6 +10,7 @@ interface DosingParameters {
   md_min: number;
   md_max: number;
   md_freq: number;
+  alertmsg?: string;
 }
 
 const schema = yup.object().shape({
@@ -51,6 +52,13 @@ function App() {
                 <option value="female">Female</option>
               </select>
             </div>
+            <div className="input-row">
+              <label htmlFor="tdm">Has TDM been consulted? </label>
+              <select name="tdm" id="tdm" ref={register}>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+              </select>
+            </div>
             <input type="submit" value="Calculate dose"/>
           </form>
         </div>
@@ -68,7 +76,8 @@ function App() {
                   {result.md_min}-{result.md_max} mg
                 </>
               )} q{result.md_freq}h (administer over {adminNote(result.md_max)} minutes)</p>
-              <p>For other details please RTFM.</p>
+              {result.alertmsg ? (<p>{result.alertmsg}</p>) : ""}
+              <p>For other details (esp re TDM consultation) please refer to the original policy document.</p>
             </>
           ) : ""}
         </div>
@@ -79,7 +88,7 @@ function App() {
 
 function vancDose(age: number, wt: number, cr: number, sex: "male" | "female") {
   const crcl = (140 - age) * wt / (0.815*cr) * ((sex === "female") ? 0.85 : 1)
-  let ld, md_min, md_max, md_freq;
+  let ld, md_min, md_max, md_freq, alertmsg;
   if (crcl > 60) {
     md_min = 15*wt;
     md_max = 20*wt;
@@ -93,6 +102,7 @@ function vancDose(age: number, wt: number, cr: number, sex: "male" | "female") {
   } else {
     md_min = md_max = 15*wt;
     md_freq = 48;
+    alertmsg = "Call ID or Clin Pharm!!!"
   }
 
   if (crcl >= 20) {
@@ -102,10 +112,11 @@ function vancDose(age: number, wt: number, cr: number, sex: "male" | "female") {
   }
 
   return {
-    ld: Math.round(ld / 250) * 250,
+    ld: Math.min(Math.round(ld / 250) * 250, 3000),
     md_min: Math.round(md_min / 250) * 250,
     md_max: Math.round(md_max/250) * 250,
-    md_freq
+    md_freq,
+    alertmsg,
   }
 }
 
